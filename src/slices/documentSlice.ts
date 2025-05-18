@@ -1,4 +1,3 @@
-// File: src/features/document/documentSlice.ts
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface LastChange {

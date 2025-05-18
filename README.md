@@ -25,7 +25,7 @@ A simple real-time collaborative text editor built with React, TypeScript, Redux
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/collaborative-editor.git
+   git clone https://github.com/kshivam-fe/collaborative-editor.git
    cd collaborative-editor
 
 2. Install Install dependencies:

@@ -1,4 +1,3 @@
-// File: src/features/user/userSlice.ts
 import { createSlice } from '@reduxjs/toolkit';
 
 interface UserState {
