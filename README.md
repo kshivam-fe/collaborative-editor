@@ -42,7 +42,7 @@ A simple real-time collaborative text editor built with React, TypeScript, Redux
 
 
 ## Usage
-
+ - Open multiple tabs **manually by pasting the URL**, not by duplicating (right-click → Duplicate Tab). Duplicating will clone the same user session.
  - Start typing in one tab; changes will appear in other tabs (other user) in real time.
  - Undo and redo your changes using the provided buttons.
  - The last changed text is highlighted and shows the user who made the change.
