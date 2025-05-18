@@ -43,7 +43,7 @@ A simple real-time collaborative text editor built with React, TypeScript, Redux
 
 ## Usage
 
- - Start typing in one tab; changes will appear in other tabs in real time.
+ - Start typing in one tab; changes will appear in other tabs (other user) in real time.
  - Undo and redo your changes using the provided buttons.
  - The last changed text is highlighted and shows the user who made the change.
  - Document content persists in localStorage, so refreshing the page restores your text.
@@ -57,5 +57,15 @@ A simple real-time collaborative text editor built with React, TypeScript, Redux
  - BroadcastChannel is used to send/receive changes across tabs.
  - The editor uses a contentEditable <div>, updating innerText and restoring the cursor after changes.
  - Highlighting is done by injecting a <span> with background color around the last changed range.
+
+## Limitations and Future Improvements
+
+ - User identification is simplistic; no authentication or real user IDs.
+ - The BroadcastChannel API works only within the same browser and device.
+ - Conflict resolution is naive; overlapping edits may cause unexpected results.
+ - Undo/Redo history is local to each tab but synced via broadcast.
+ - Performance could degrade with very large documents.
+ - No rich-text formatting support.
+
 
 ## Made with ❤️ using React, TypeScript, and Redux Toolkit.
