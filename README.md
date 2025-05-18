@@ -38,7 +38,7 @@ A simple real-time collaborative text editor built with React, TypeScript, Redux
     ```bash
     npm run dev
 
-4. Open multiple browser tabs at http://localhost:3000 (or the port Vite reports) to test real-time collaboration.
+4. Open multiple browser tabs at http://localhost:5173 (or the port Vite reports) to test real-time collaboration.
 
 
 ## Usage
