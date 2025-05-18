@@ -13,6 +13,7 @@ export const undoWithBroadcast = createAsyncThunk<
   if (lastChange && lastChange.userId === userId) {
     broadcast.postMessage({
       userId,
+      userName: lastChange.userName,
       start: lastChange.start,
       end: lastChange.start + lastChange.oldText.length,
       newText: lastChange.newText,
@@ -31,6 +32,7 @@ export const redoWithBroadcast = createAsyncThunk<
   if (lastChange && lastChange.userId === userId) {
     broadcast.postMessage({
       userId,
+      userName: lastChange.userName,
       start: lastChange.start,
       end: lastChange.end,
       newText: lastChange.newText,

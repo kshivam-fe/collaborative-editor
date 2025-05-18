@@ -44,9 +44,9 @@ export function useCollaborativeEditor() {
   useEffect(() => {
     broadcast.current = new BroadcastChannel("collab-doc-channel");
     broadcast.current.onmessage = (event) => {
-      const { userId, start, end, newText } = event.data;
+      const { userId, start, end, newText, userName } = event.data;
       if (userId !== user.id) {
-        dispatch(receiveExternalChange({ userId, start, end, newText }));
+        dispatch(receiveExternalChange({ userId, start, end, newText, userName }));
       }
     };
     return () => broadcast.current?.close();
@@ -83,14 +83,8 @@ export function useCollaborativeEditor() {
       const userName =
         document.lastChange.userId === user.id
           ? user.name
-          : `User (${document.lastChange.userId.slice(0, 4)})`;
+          : document.lastChange.userName;
       setLastChangeInfo({ userName, timestamp: Date.now() });
-
-      const timeout = setTimeout(() => {
-        setLastChangeInfo(null);
-      }, 5000);
-
-      return () => clearTimeout(timeout);
     }
   }, [document.lastChange, user.id, user.name]);
 
@@ -111,6 +105,7 @@ export function useCollaborativeEditor() {
       dispatch(
         applyChange({
           userId: user.id,
+          userName: user.name,
           start,
           end,
           newText: insertedText,
@@ -119,6 +114,7 @@ export function useCollaborativeEditor() {
 
       broadcast.current?.postMessage({
         userId: user.id,
+        userName: user.name,
         start,
         end,
         newText: insertedText,

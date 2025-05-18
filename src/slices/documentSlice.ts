@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface LastChange {
   userId: string;
+  userName: string;
   timestamp: number;
   start: number;
   end: number;
@@ -41,9 +42,10 @@ const documentSlice = createSlice({
         start: number;
         end: number;
         newText: string;
+        userName: string;
       }>
     ) => {
-      const { userId, start, end, newText } = action.payload;
+      const { userId, start, end, newText, userName } = action.payload;
       const oldText = state.content.slice(start, end);
 
       // Apply the change to the content string
@@ -52,6 +54,7 @@ const documentSlice = createSlice({
 
       const change: LastChange = {
         userId,
+        userName,
         timestamp: Date.now(),
         start,
         end: start + newText.length,
@@ -86,6 +89,7 @@ const documentSlice = createSlice({
           // Update lastChange to reverted one (for highlight)
           state.lastChange = {
             userId: change.userId,
+            userName: change.userName,
             start: change.start,
             end: change.start + change.oldText.length,
             newText: change.oldText, // what we just "re-inserted"
@@ -123,19 +127,21 @@ const documentSlice = createSlice({
       state,
       action: PayloadAction<{
         userId: string;
+        userName: string;
         start: number;
         end: number;
         newText: string;
       }>
     ) => {
       // Apply external change (from BroadcastChannel)
-      const { userId, start, end, newText } = action.payload;
+      const { userId, start, end, newText, userName } = action.payload;
       state.content =
         state.content.slice(0, start) + newText + state.content.slice(end);
 
       // Update lastChange for highlight (but do not touch undo/redo stacks)
       state.lastChange = {
         userId,
+        userName,
         timestamp: Date.now(),
         start,
         end: start + newText.length,
