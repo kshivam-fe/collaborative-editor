@@ -29,31 +29,43 @@ export function findDiff(oldStr: string, newStr: string) {
 
 
 
-export function placeCursorAtEnd(el: HTMLElement) {
+export function placeCursorAtPosition(el: HTMLElement, charIndex: number) {
   const selection = window.getSelection();
   if (!selection) return;
 
   // Create a range
   const range = document.createRange();
 
-  // Set the range to the last child node and its length (end position)
-  // If the element has child nodes, try to set the range to the last text node
-  if (el.lastChild) {
-    if (el.lastChild.nodeType === Node.TEXT_NODE) {
-      // If last child is text node, place cursor at the end of its text content
-      range.setStart(el.lastChild, el.lastChild.textContent?.length || 0);
+  let currentNode: Node | null = null;
+  let currentOffset = 0;
+  let remaining = charIndex;
+
+  // Walk the child nodes to find the exact text node and offset
+  function findNodeAndOffset(node: Node): boolean {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const textLength = node.textContent?.length || 0;
+      if (remaining <= textLength) {
+        currentNode = node;
+        currentOffset = remaining;
+        return true;
+      } else {
+        remaining -= textLength;
+      }
     } else {
-      // If last child is element, place cursor after it
-      range.setStartAfter(el.lastChild);
+      for (const child of Array.from(node.childNodes)) {
+        if (findNodeAndOffset(child)) return true;
+      }
     }
-  } else {
-    // If no children, set range at position 0
-    range.setStart(el, 0);
+    return false;
   }
 
-  range.collapse(true);
+  findNodeAndOffset(el);
 
-  // Clear existing selection and set new range
-  selection.removeAllRanges();
-  selection.addRange(range);
+  if (currentNode) {
+    range.setStart(currentNode, currentOffset);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
 }
+

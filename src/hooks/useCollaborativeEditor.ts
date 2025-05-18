@@ -6,8 +6,11 @@ import {
   setContent,
 } from "../slices/documentSlice";
 import type { AppDispatch, RootState } from "../store";
-import { redoWithBroadcast, undoWithBroadcast } from "../actions/documentAction";
-import { findDiff, placeCursorAtEnd } from "../utils/doc.util";
+import {
+  redoWithBroadcast,
+  undoWithBroadcast,
+} from "../actions/documentAction";
+import { findDiff, placeCursorAtPosition } from "../utils/doc.util";
 import { DEBOUNCE_DELAY } from "../constant";
 
 export function useCollaborativeEditor() {
@@ -16,7 +19,7 @@ export function useCollaborativeEditor() {
   const document = useSelector((state: RootState) => state.document);
 
   const editorRef = useRef<HTMLDivElement>(null);
-  const broadcast = useRef<BroadcastChannel | null>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastContentRef = useRef(document.content);
 
@@ -27,10 +30,10 @@ export function useCollaborativeEditor() {
 
   // Persist document content to localStorage
   useEffect(() => {
-    if (document.content.trim().length > 0) {
+    if (document.lastChange) {
       localStorage.setItem("collab-document-content", document.content);
     }
-  }, [document.content]);
+  }, [document.content, document.lastChange]);
 
   // Load saved content from localStorage on mount
   useEffect(() => {
@@ -42,17 +45,23 @@ export function useCollaborativeEditor() {
 
   // Initialize BroadcastChannel and listen for external changes
   useEffect(() => {
-    broadcast.current = new BroadcastChannel("collab-doc-channel");
-    broadcast.current.onmessage = (event) => {
+    broadcastChannelRef.current = new BroadcastChannel("collab-doc-channel");
+
+    broadcastChannelRef.current.onmessage = (event) => {
       const { userId, start, end, newText, userName } = event.data;
       if (userId !== user.id) {
-        dispatch(receiveExternalChange({ userId, start, end, newText, userName }));
+        dispatch(
+          receiveExternalChange({ userId, start, end, newText, userName })
+        );
       }
     };
-    return () => broadcast.current?.close();
+
+    return () => {
+      broadcastChannelRef.current?.close();
+    };
   }, [dispatch, user.id]);
 
-  // Update editor DOM content when redux document changes
+  // Render content with highlight and restore cursor position
   useEffect(() => {
     if (!editorRef.current) return;
 
@@ -74,10 +83,12 @@ export function useCollaborativeEditor() {
 
     lastContentRef.current = content;
 
-    placeCursorAtEnd(editorRef.current!);
+    placeCursorAtPosition(
+      editorRef.current,
+      lastChange ? lastChange.end : content.length
+    );
   }, [document.content, document.lastChange, document]);
 
-  // Show last change info for 5 seconds
   useEffect(() => {
     if (document.lastChange) {
       const userName =
@@ -88,6 +99,14 @@ export function useCollaborativeEditor() {
     }
   }, [document.lastChange, user.id, user.name]);
 
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
+  // Handle user input with diff computation and sync
   function handleInput() {
     if (!editorRef.current) return;
 
@@ -112,7 +131,7 @@ export function useCollaborativeEditor() {
         })
       );
 
-      broadcast.current?.postMessage({
+      broadcastChannelRef.current?.postMessage({
         userId: user.id,
         userName: user.name,
         start,
@@ -123,14 +142,24 @@ export function useCollaborativeEditor() {
   }
 
   function handleUndo() {
-    if (broadcast.current) {
-      dispatch(undoWithBroadcast({ userId: user.id, broadcast: broadcast.current }));
+    if (broadcastChannelRef.current) {
+      dispatch(
+        undoWithBroadcast({
+          userId: user.id,
+          broadcast: broadcastChannelRef.current,
+        })
+      );
     }
   }
 
   function handleRedo() {
-    if (broadcast.current) {
-      dispatch(redoWithBroadcast({ userId: user.id, broadcast: broadcast.current }));
+    if (broadcastChannelRef.current) {
+      dispatch(
+        redoWithBroadcast({
+          userId: user.id,
+          broadcast: broadcastChannelRef.current,
+        })
+      );
     }
   }
 
